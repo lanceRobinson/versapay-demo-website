@@ -1,103 +1,45 @@
-import Image from "next/image";
+// ==============================
+// REPLACE app/page.js USING MUI GRID v2 SYNTAX WITH TALLER CARDS
+// ==============================
+"use client";
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import * as React from "react";
+import Grid from "@mui/material/Grid"; // Updated import for Grid v2
+import Stack from "@mui/material/Stack";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import ScenarioCard from "./components/ScenarioCard";
+import scenarios from "./data/scenarios.json";
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+export default function Landing() {
+    return (
+        <Stack spacing={5}>
+            {/* Hero */}
+            <Box sx={{
+                p: { xs: 4, md: 6 },
+                borderRadius: 4,
+                bgcolor: "#f0f9ff",
+                backgroundImage:
+                    "radial-gradient(1200px 400px at 10% 10%, rgba(14,165,233,.15), transparent), radial-gradient(800px 300px at 90% 10%, rgba(34,197,94,.15), transparent)",
+                border: "1px solid",
+                borderColor: "divider",
+            }}>
+                <Typography variant="h3" sx={{ fontWeight: 900, mb: 1 }}>
+                    Versapay Scenario-driven Demo
+                </Typography>
+                <Typography color="text.secondary" sx={{ maxWidth: 720 }}>
+                    Explore focused scenarios that showcase Versapay APIs within a modern React + Netlify stack. Start with a clean cart and checkout powered by a serverless proxy to VersaPay’s API.
+                </Typography>
+            </Box>
+
+            {/* Scenarios grid: fixed 3-up with equal taller card heights */}
+            <Grid container spacing={3} columns={12}>
+                {scenarios.map((s) => (
+                    <Grid key={s.title} size={{ xs: 12, md: 4, lg: 4 }}>
+                        <ScenarioCard {...s} cardHeight={300} />
+                    </Grid>
+                ))}
+            </Grid>
+        </Stack>
+    );
 }

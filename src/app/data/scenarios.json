@@ -1,0 +1,26 @@
+[
+    {
+        "title": "Shopping Cart & Checkout using Versapay",
+        "description": "Add items to a cart and complete checkout",
+        "href": "/scenarios/cart",
+        "icon": "shopping",
+        "chip": "E-Commerce API",
+        "disabled": false
+    },
+    {
+        "title": "Capture Payment Method",
+        "description": "Capture a customer payment method with processing a payment.",
+        "href": "#",
+        "icon": "rocket",
+        "chip": "Coming Soon",
+        "disabled": true
+    },
+    {
+        "title": "Portal Sign In/Sign Up & Prepayment Page",
+        "description": "Customers can sign in to the portal, sign up for the portal, or make a prepayment without signing in.",
+        "href": "#",
+        "icon": "tools",
+        "chip": "Coming Soon",
+        "disabled": true
+    }
+]

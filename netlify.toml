@@ -6,11 +6,9 @@ publish = ".next"
 package = "@netlify/plugin-nextjs"
 
 [functions]
+directory = "netlify/functions"
 node_bundler = "esbuild"
-external_node_modules = []
-included_files = []
 
-# Optional: local redirects for a clean API path
 [[redirects]]
 from = "/api/versapay/*"
 to = "/.netlify/functions/versapay/:splat"

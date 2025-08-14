@@ -13,5 +13,5 @@ included_files = []
 # Optional: local redirects for a clean API path
 [[redirects]]
 from = "/api/versapay/*"
-to = "/.netlify/functions/versapay/:splat"
+to = ".netlify/functions/versapay/:splat"
 status = 200

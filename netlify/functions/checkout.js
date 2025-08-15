@@ -3,20 +3,13 @@ const VERSAPAY_API_KEY = process.env.VERSAPAY_API_KEY || "";
 const MOCK_MODE = process.env.MOCK_MODE === "1" || process.env.MOCK_MODE === "true";
 
 exports.handler = async (event) => {
+    console.log("netlify/functions/checkout.js");
     try {
-        const { httpMethod, path } = event;
-        const segments = (path || "").split("/");
-        const action = segments[segments.length - 1] || "";
-
-        // Health check: GET /.netlify/functions/versapay/ping
-        if (httpMethod === "GET" && action === "ping") {
-            return json(200, { ok: true, path, mock: MOCK_MODE, hasKey: Boolean(VERSAPAY_API_KEY) });
+        if (event.httpMethod !== "POST") {
+            return text(405, "Method Not Allowed");
         }
 
-        if (httpMethod !== "POST") return text(405, "Method Not Allowed");
-        if (action !== "checkout") return text(404, "Not Found");
-
-        // Optional sandbox without creds
+        // Sandbox without creds
         if (!VERSAPAY_API_KEY || MOCK_MODE) {
             const fakeId = `sess_${Math.random().toString(36).slice(2)}`;
             return json(200, {
@@ -50,7 +43,7 @@ exports.handler = async (event) => {
             paymentUrl: data.url ?? data.hosted_payment_url,
         });
     } catch (err) {
-        console.error("versapay function error:", err);
+        console.error("checkout function error:", err);
         return json(500, { error: err?.message || "Unknown error", stack: err?.stack });
     }
 };

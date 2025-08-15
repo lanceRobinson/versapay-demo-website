@@ -1,6 +1,3 @@
-// ==============================
-// REPLACE app/page.js USING MUI GRID v2 SYNTAX WITH TALLER CARDS
-// ==============================
 "use client";
 
 import * as React from "react";
@@ -12,6 +9,13 @@ import ScenarioCard from "./components/ScenarioCard";
 import scenarios from "./data/scenarios.json";
 
 export default function Landing() {
+    // Ensure Netlify redirect for local dev matches our API calls
+    // In netlify.toml, have:
+    // [[redirects]]
+    //   from = "/api/versapay/*"
+    //   to = "/.netlify/functions/versapay/:splat"
+    //   status = 200
+
     return (
         <Stack spacing={5}>
             {/* Hero */}
@@ -25,10 +29,10 @@ export default function Landing() {
                 borderColor: "divider",
             }}>
                 <Typography variant="h3" sx={{ fontWeight: 900, mb: 1 }}>
-                    Versapay Scenario-driven Demo
+                    Scenario-driven Demo
                 </Typography>
                 <Typography color="text.secondary" sx={{ maxWidth: 720 }}>
-                    Explore focused scenarios that showcase Versapay APIs within a modern React + Netlify stack. Start with a clean cart and checkout powered by a serverless proxy to VersaPay’s API.
+                    Explore focused scenarios that showcase a modern React + Netlify stack. Start with a clean cart and checkout powered by a serverless proxy to VersaPay’s API.
                 </Typography>
             </Box>
 

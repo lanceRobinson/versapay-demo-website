@@ -6,54 +6,41 @@ exports.handler = async (event) => {
     console.log("netlify/functions/checkout.js");
     try {
         if (event.httpMethod !== "POST") {
-            return text(405, "Method Not Allowed");
+            return { statusCode: 405, body: "Method Not Allowed" };
         }
 
         // Sandbox without creds
         if (!VERSAPAY_API_KEY || MOCK_MODE) {
             const fakeId = `sess_${Math.random().toString(36).slice(2)}`;
-            return json(200, {
-                sessionId: fakeId,
-                paymentUrl: `/checkout/success?session=${fakeId}`,
-                mock: true,
-            });
+            return {
+                statusCode: 200,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sessionId: fakeId, paymentUrl: `/checkout/success?session=${fakeId}`, mock: true }),
+            };
         }
 
-        const body = event.body ? safeJsonParse(event.body) : {};
+        const body = event.body ? JSON.parse(event.body) : {};
         const payload = {
-            currency: body?.currency || "USD",
-            items: body?.items || [],
-            customer: body?.customer || {},
+            currency: body.currency || "USD",
+            items: body.items || [],
+            customer: body.customer || {},
         };
 
         const r = await fetch(`${VERSAPAY_BASE_URL}/ecommerce/checkout/sessions`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${VERSAPAY_API_KEY}`,
-            },
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${VERSAPAY_API_KEY}` },
             body: JSON.stringify(payload),
         });
 
         const data = await r.json().catch(() => ({}));
-        if (!r.ok) return json(r.status, { error: "VersaPay API error", details: data });
+        if (!r.ok) {
+            return { statusCode: r.status, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ error: "VersaPay API error", details: data }) };
+        }
 
-        return json(200, {
-            sessionId: data.id ?? data.sessionId,
-            paymentUrl: data.url ?? data.hosted_payment_url,
-        });
+        return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: data.id ?? data.sessionId, paymentUrl: data.url ?? data.hosted_payment_url }) };
     } catch (err) {
         console.error("checkout function error:", err);
-        return json(500, { error: err?.message || "Unknown error", stack: err?.stack });
+        return { statusCode: 500, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ error: err?.message || "Unknown error", stack: err?.stack }) };
     }
 };
 
-function json(statusCode, obj) {
-    return { statusCode, headers: { "Content-Type": "application/json" }, body: JSON.stringify(obj) };
-}
-function text(statusCode, msg) {
-    return { statusCode, headers: { "Content-Type": "text/plain" }, body: msg };
-}
-function safeJsonParse(s) {
-    try { return JSON.parse(s); } catch (e) { return {}; }
-}

@@ -13,3 +13,13 @@ node_bundler = "esbuild"
 from = "/api/versapay/*"
 to = "/netlify/functions/:splat"
 status = 200
+
+[[redirects]]
+from = "/api/versapay/checkout"
+to = "/netlify/functions/checkout"
+status = 200
+
+[[redirects]]
+from = "/api/versapay/ping"
+to = "/netlify/functions/ping"
+status = 200

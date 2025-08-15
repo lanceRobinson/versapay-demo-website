@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Grid from "@mui/material/Grid"; // Updated import for Grid v2
+import Grid from "@mui/material/Grid2"; // Updated import for Grid v2
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -9,13 +9,6 @@ import ScenarioCard from "./components/ScenarioCard";
 import scenarios from "./data/scenarios.json";
 
 export default function Landing() {
-    // Ensure Netlify redirect for local dev matches our API calls
-    // In netlify.toml, have:
-    // [[redirects]]
-    //   from = "/api/versapay/*"
-    //   to = "/.netlify/functions/versapay/:splat"
-    //   status = 200
-
     return (
         <Stack spacing={5}>
             {/* Hero */}
@@ -32,7 +25,7 @@ export default function Landing() {
                     Scenario-driven Demo
                 </Typography>
                 <Typography color="text.secondary" sx={{ maxWidth: 720 }}>
-                    Explore focused scenarios that showcase a modern React + Netlify stack. Start with a clean cart and checkout powered by a serverless proxy to VersaPay’s API.
+                    Explore focused scenarios that showcase a modern React + Netlify stack. Start with a clean cart and a single Versapay SDK checkout flow.
                 </Typography>
             </Box>
 

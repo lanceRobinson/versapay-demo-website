@@ -3,7 +3,7 @@ const VERSAPAY_API_KEY = process.env.VERSAPAY_API_KEY || "";
 const MOCK_MODE = process.env.MOCK_MODE === "1" || process.env.MOCK_MODE === "true";
 
 exports.handler = async (event) => {
-    console.log("netlify/functions/checkout.js");
+    console.log("Attempting netlify/functions/checkout.js");
     try {
         if (event.httpMethod !== "POST") {
             return { statusCode: 405, body: "Method Not Allowed" };
@@ -25,14 +25,16 @@ exports.handler = async (event) => {
             items: body.items || [],
             customer: body.customer || {},
         };
-
+        console.log(payload)
         const r = await fetch(`${VERSAPAY_BASE_URL}/ecommerce/checkout/sessions`, {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${VERSAPAY_API_KEY}` },
             body: JSON.stringify(payload),
         });
-
+        console.log(r)
         const data = await r.json().catch(() => ({}));
+        console.log("data", data)
+
         if (!r.ok) {
             return { statusCode: r.status, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ error: "VersaPay API error", details: data }) };
         }

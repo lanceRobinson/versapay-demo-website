@@ -1,35 +1,39 @@
-// netlify/functions/checkout.js
 const VERSAPAY_BASE_URL = process.env.VERSAPAY_BASE_URL || "https://api.sandbox.versapay.com";
 const VERSAPAY_API_KEY = process.env.VERSAPAY_API_KEY || "";
+const MOCK_MODE = process.env.MOCK_MODE === "1" || process.env.MOCK_MODE === "true";
 
 exports.handler = async (event) => {
     try {
-        // Path will look like: "/.netlify/functions/versapay/checkout"
-        const segments = event.path.split("/");
+        const { httpMethod, path } = event;
+        const segments = (path || "").split("/");
         const action = segments[segments.length - 1] || "";
 
-        if (action !== "checkout") {
-            return { statusCode: 404, body: "Not Found" };
+        // Health check: GET /.netlify/functions/versapay/ping
+        if (httpMethod === "GET" && action === "ping") {
+            return json(200, { ok: true, path, mock: MOCK_MODE, hasKey: Boolean(VERSAPAY_API_KEY) });
         }
 
-        if (event.httpMethod !== "POST") {
-            return { statusCode: 405, body: "Method Not Allowed" };
+        if (httpMethod !== "POST") return text(405, "Method Not Allowed");
+        if (action !== "checkout") return text(404, "Not Found");
+
+        // Optional sandbox without creds
+        if (!VERSAPAY_API_KEY || MOCK_MODE) {
+            const fakeId = `sess_${Math.random().toString(36).slice(2)}`;
+            return json(200, {
+                sessionId: fakeId,
+                paymentUrl: `/checkout/success?session=${fakeId}`,
+                mock: true,
+            });
         }
 
-        if (!VERSAPAY_API_KEY) {
-            return { statusCode: 500, body: "Server not configured (missing VERSAPAY_API_KEY)" };
-        }
-
-        const body = event.body ? JSON.parse(event.body) : {};
-
-        // Map your cart to Versapay’s schema
+        const body = event.body ? safeJsonParse(event.body) : {};
         const payload = {
-            currency: body.currency || "USD",
-            items: body.items || [],
-            customer: body.customer || {},
+            currency: body?.currency || "USD",
+            items: body?.items || [],
+            customer: body?.customer || {},
         };
 
-        const vp = await fetch(`${VERSAPAY_BASE_URL}/ecommerce/checkout/sessions`, {
+        const r = await fetch(`${VERSAPAY_BASE_URL}/ecommerce/checkout/sessions`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -38,19 +42,25 @@ exports.handler = async (event) => {
             body: JSON.stringify(payload),
         });
 
-        const data = await vp.json();
-        if (!vp.ok) {
-            return { statusCode: vp.status, body: JSON.stringify({ error: data }) };
-        }
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) return json(r.status, { error: "VersaPay API error", details: data });
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                sessionId: data.id ?? data.sessionId,
-                paymentUrl: data.url ?? data.hosted_payment_url,
-            }),
-        };
+        return json(200, {
+            sessionId: data.id ?? data.sessionId,
+            paymentUrl: data.url ?? data.hosted_payment_url,
+        });
     } catch (err) {
-        return { statusCode: 500, body: JSON.stringify({ error: err?.message || "Unknown error" }) };
+        console.error("versapay function error:", err);
+        return json(500, { error: err?.message || "Unknown error", stack: err?.stack });
     }
 };
+
+function json(statusCode, obj) {
+    return { statusCode, headers: { "Content-Type": "application/json" }, body: JSON.stringify(obj) };
+}
+function text(statusCode, msg) {
+    return { statusCode, headers: { "Content-Type": "text/plain" }, body: msg };
+}
+function safeJsonParse(s) {
+    try { return JSON.parse(s); } catch (e) { return {}; }
+}

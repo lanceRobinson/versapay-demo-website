@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Grid from "@mui/material/Grid2"; // Updated import for Grid v2
+import Grid from "@mui/material/Grid"; // Updated import for Grid v2
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";

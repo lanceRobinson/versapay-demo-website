@@ -3,6 +3,7 @@ const API_TOKEN2 = process.env.VERSAPAY_API_TOKEN || "";
 const API_KEY2 = process.env.VERSAPAY_API_KEY || "";
 
 exports.handler = async (event) => {
+    console.log('netlify/functions/order')
     try {
         if (event.httpMethod !== "POST") return { statusCode: 405, body: "Method Not Allowed" };
         if (!API_TOKEN2 || !API_KEY2) return { statusCode: 500, body: "Missing VERSAPAY_API_TOKEN or VERSAPAY_API_KEY" };

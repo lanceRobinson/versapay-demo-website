@@ -3,9 +3,18 @@ const API_TOKEN = process.env.VERSAPAY_API_TOKEN || "";
 const API_KEY = process.env.VERSAPAY_API_KEY || "";
 
 exports.handler = async (event) => {
+    console.log("netlify/functions/sessions");
+    console.log("VERSAPAY_API_TOKEN", API_TOKEN);
+    console.log("VERSAPAY_API_KEY", API_KEY);
     try {
         if (event.httpMethod !== "POST") return { statusCode: 405, body: "Method Not Allowed" };
-        if (!API_TOKEN || !API_KEY) return { statusCode: 500, body: "Missing VERSAPAY_API_TOKEN or VERSAPAY_API_KEY" };
+        if (!API_TOKEN || !API_KEY) {
+            return {statusCode: 500, body: "Missing VERSAPAY_API_TOKEN or VERSAPAY_API_KEY"};
+        }
+
+        const credentials = `${API_TOKEN}:${API_KEY}`;
+        const encodedCredentials = btoa(credentials);
+        const authorizationHeader = `Basic ${encodedCredentials}`;
 
         const body = event.body ? JSON.parse(event.body) : {};
         const payload = {
@@ -16,10 +25,14 @@ exports.handler = async (event) => {
 
         const res = await fetch(`${BASE}/sessions`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Authorization": authorizationHeader,
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify(payload),
         });
         const data = await res.json().catch(() => ({}));
+        console.log("data", data)
         if (!res.ok) return { statusCode: res.status, body: JSON.stringify({ error: data }) };
 
         return { statusCode: 200, body: JSON.stringify({ sessionId: data.id || data.sessionId }) };

@@ -14,6 +14,9 @@ from = "/api/versapay/*"
 to = "/.netlify/functions/:splat"
 status = 200
 
-
+[[headers]]
+for = "/*"
+[headers.values]
+Content-Security-Policy = "frame-src 'self' https://ecommerce-api-uat.versapay.com https://ecommerce-api.versapay.com; child-src 'self' https://ecommerce-api-uat.versapay.com https://ecommerce-api.versapay.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ecommerce-api-uat.versapay.com https://ecommerce-api.versapay.com"
 
 

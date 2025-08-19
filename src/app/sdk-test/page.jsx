@@ -49,7 +49,7 @@ export default function SdkTest() {
             const client = await window.versapay.initClient(_sessionId, styles, fontUrls)
             console.log("client",client)
             await Promise.resolve(client.initFrame(container, "358px", "500px"));
-            // clientRef.current = client;
+            clientRef.current = client;
             submit?.removeAttribute("disabled");
 
             client.onApproval(

@@ -17,7 +17,7 @@ export default function CartScenario() {
 
     return (
         <Grid container spacing={3} columns={12}>
-            <Grid size={{ xs: 12, md: 7 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
                 <Stack spacing={3}>
                     <Typography variant="h4" fontWeight={800}>Your Cart</Typography>
                     <Card>
@@ -47,7 +47,7 @@ export default function CartScenario() {
                 </Stack>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 5 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
                 <Stack spacing={2}>
                     <Typography variant="h6" fontWeight={800}>Payment</Typography>
                     <VersapayCheckout

@@ -1,7 +1,8 @@
 import * as React from "react";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter"; // use v13-appRouter if you're on Next 13
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v14-appRouter"; // use v13-appRouter if you're on Next 13
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import theme from "./theme";
+import AppShell from "./components/AppShell";
 
 export const metadata = {
     title: "VersaPay Demo",
@@ -17,10 +18,12 @@ export default function RootLayout({ children }) {
             <ThemeProvider theme={theme}>
                 {/* Have exactly one CssBaseline at the app root */}
                 <CssBaseline />
-                {children}
+                <AppShell>
+                    {children}
+                </AppShell>
             </ThemeProvider>
         </AppRouterCacheProvider>
         </body>
-        </html>
-    );
+</html>
+);
 }

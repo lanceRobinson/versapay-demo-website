@@ -22,21 +22,13 @@ export default function SdkTest() {
     }
 
     const styles = {
-        html: {
-            "font-family": "DotGothic16",
-        },
-        input: {
-            "font-size": "14pt",
-            "color": "#3A3A3A",
-        },
-        select: {
-            "font-size": "14pt",
-            "color": "#3A3A3A",
-        }
+        ".vp-input, .vp-select": { borderRadius: "12px" },
+        ".vp-button-primary": { backgroundColor: "#0ea5e9" },
+        ".vp-label": { fontWeight: 600 }
     };
-
-    // Set custom google font families to display in the iFrame.
-    var fontUrls = ['https://fonts.googleapis.com/css2?family=DotGothic16&display=swap']
+    const fontUrls = [
+        "https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap",
+    ];
 
     useEffect(() => {
         if (!sdkReady) return; // wait until client.js is loaded
@@ -48,19 +40,31 @@ export default function SdkTest() {
             const container = document.querySelector("#payContainer");
             const client = await window.versapay.initClient(_sessionId, styles, fontUrls)
             console.log("client",client)
-            await Promise.resolve(client.initFrame(container, "358px", "500px"));
+            const frameReadyPromise = await Promise.resolve(client.initFrame(container, "358px", "500px"));
             clientRef.current = client;
             submit?.removeAttribute("disabled");
 
-            client.onApproval(
-                (result) => {
-                    console.log("[sdk-test] approved", result);
-                },
-                (err) => {
-                    console.log("[sdk-test] rejected", err);
-                    if (submitError) submitError.textContent = err?.error || "Payment not approved";
-                }
-            );
+            //handlers
+            const onResolve = result => {
+                console.log("[sdk-test] approved", result);
+                console.log(result);
+            };
+
+            const onReject = error => {
+                console.log("[sdk-test] rejected", error);
+                if (submitError) submitError.textContent = err?.error || "Payment not approved";
+                console.error(error);
+            };
+
+            client.onApproval(onResolve, onReject);
+
+
+            // try {
+            //     const result = await client.onApproval();
+            //     console.log("result",result);
+            // } catch (error) {
+            //     console.error("error",error);
+            // }
 
             form?.addEventListener("submit", function (e) {
                 e.preventDefault();
@@ -74,7 +78,7 @@ export default function SdkTest() {
             <form id="form">
                 <div id="payContainer" style={{ height: "358px", width: "500px" }}></div>
                 <div style={{ marginTop: 12 }}>
-                    <button id="submitPayment" disabled>Pay</button>
+                    <button id="submitPayment" disabled>Pay Now</button>
                     <span id="submitError" style={{ color: "red", marginLeft: 8 }}></span>
                 </div>
             </form>
@@ -83,7 +87,7 @@ export default function SdkTest() {
             <Script
                 src="https://ecommerce-api-uat.versapay.com/client.js"
                 strategy="afterInteractive"
-                onLoad={() => setSdkReady(true)}
+                onReady={() => setSdkReady(true)}
             />
         </div>
     );

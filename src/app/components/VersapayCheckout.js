@@ -3,7 +3,7 @@ import * as React from "react";
 import Script from "next/script";
 import { Alert, Button, Card, CardContent, Typography, Box, Skeleton, Stack } from "@mui/material";
 
-export default function VersapayCheckout({ amountCents = 0, currency = "USD", cart = [], email = "", onSuccess }) {
+export default function VersapayCheckout({ amountCents = 0, currency = "USD", cart = [], email = "", onSuccess, sdkStyles, sdkFontUrls }) {
     const [mounted, setMounted] = React.useState(false); // render iframe container only on client
     const [sessionId, setSessionId] = React.useState("");
     const [sdkReady, setSdkReady] = React.useState(false);
@@ -15,6 +15,16 @@ export default function VersapayCheckout({ amountCents = 0, currency = "USD", ca
     const containerId = React.useId();
     const clientRef = React.useRef(null);
     const initializedRef = React.useRef(false);
+
+    // Default SDK styles & fonts (can be overridden via props)
+    const defaultStyles = {
+        ".vp-input, .vp-select": { borderRadius: "12px" },
+        ".vp-button-primary": { backgroundColor: "#0ea5e9" },
+        ".vp-label": { fontWeight: 600 },
+    };
+    const defaultFontUrls = [
+        "https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap",
+    ];
 
     const debug = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debug") === "1";
     const log = (...args) => { if (debug) console.log("[VP]", ...args); };
@@ -54,7 +64,9 @@ export default function VersapayCheckout({ amountCents = 0, currency = "USD", ca
         const run = async () => {
             try {
                 log("initClient…");
-                const client = await Promise.resolve(window.versapay.initClient(sessionId, {}, []));
+                const stylesToUse = sdkStyles ?? defaultStyles;
+                const fontUrlsToUse = sdkFontUrls ?? defaultFontUrls;
+                const client = await Promise.resolve(window.versapay.initClient(sessionId, stylesToUse, fontUrlsToUse));
                 clientRef.current = client;
                 log("initFrame…", node);
                 await Promise.resolve(client.initFrame(node, "358px", "500px"));

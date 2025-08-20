@@ -1,4 +1,3 @@
-// app/components/VersapayCheckout.js
 "use client";
 
 import * as React from "react";
@@ -25,7 +24,7 @@ export default function VersapayCheckout({
                                              sdkStyles,
                                              sdkFontUrls,
                                          }) {
-    // Render container only on the client (avoids MutationObserver on null)
+    // client-only mount (prevents MutationObserver on null)
     const [mounted, setMounted] = React.useState(false);
     const [sessionId, setSessionId] = React.useState("");
     const [sdkReady, setSdkReady] = React.useState(false);
@@ -37,7 +36,17 @@ export default function VersapayCheckout({
     const clientRef = React.useRef(null);
     const initializedRef = React.useRef(false);
 
-    // Defaults (override with props if you want)
+    // keep latest values in refs to avoid stale closures in onApproval
+    const cartRef = React.useRef(cart);
+    const emailRef = React.useRef(email);
+    const billingRef = React.useRef(billingAddress);
+    const shippingRef = React.useRef(shippingAddress);
+    React.useEffect(() => { cartRef.current = cart; }, [cart]);
+    React.useEffect(() => { emailRef.current = email; }, [email]);
+    React.useEffect(() => { billingRef.current = billingAddress; }, [billingAddress]);
+    React.useEffect(() => { shippingRef.current = shippingAddress; }, [shippingAddress]);
+
+    // defaults (overridable via props)
     const defaultStyles = {
         ".vp-input, .vp-select": { borderRadius: "12px" },
         ".vp-button-primary": { backgroundColor: "#0ea5e9" },
@@ -47,17 +56,17 @@ export default function VersapayCheckout({
         "https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap",
     ];
 
-    // Minimal client-side validation to enable the button
+    // simple guard for enabling Pay Now
     const isAddressValid = (a = {}) =>
         !!(
-            a.contactFirstName &&
-            a.contactLastName &&
-            a.address1 &&
-            a.city &&
-            a.stateOrProvince &&
-            a.postCode &&
-            a.country &&
-            a.email
+            a?.contactFirstName &&
+            a?.contactLastName &&
+            a?.address1 &&
+            a?.city &&
+            a?.stateOrProvince &&
+            a?.postCode &&
+            a?.country &&
+            a?.email
         );
 
     const canPay =
@@ -70,15 +79,11 @@ export default function VersapayCheckout({
     const debug =
         typeof window !== "undefined" &&
         new URLSearchParams(window.location.search).get("debug") === "1";
-    const log = (...args) => {
-        if (debug) console.log("[VP]", ...args);
-    };
+    const log = (...args) => debug && console.log("[VP]", ...args);
 
-    React.useEffect(() => {
-        setMounted(true);
-    }, []);
+    React.useEffect(() => setMounted(true), []);
 
-    // 1) Create a VersaPay session
+    // 1) create VersaPay session
     React.useEffect(() => {
         if (!mounted) return;
         (async () => {
@@ -100,25 +105,22 @@ export default function VersapayCheckout({
         })();
     }, [mounted]);
 
-    // 2) Initialize iframe when SDK & session are ready
+    // 2) init SDK + frame (run once)
     React.useEffect(() => {
         if (!mounted || !sdkReady || !sessionId || initializedRef.current) return;
         if (!window?.versapay) return;
 
         const node = document.getElementById(containerId);
-        if (!(node instanceof Element)) {
-            log("container not ready yet");
-            return;
-        }
+        if (!(node instanceof Element)) { log("container not ready yet"); return; }
 
         const run = async () => {
             try {
                 const stylesToUse = sdkStyles ?? defaultStyles;
-                const fontUrlsToUse = sdkFontUrls ?? defaultFontUrls;
+                const fontsToUse = sdkFontUrls ?? defaultFontUrls;
 
                 log("initClient…");
                 const client = await Promise.resolve(
-                    window.versapay.initClient(sessionId, stylesToUse, fontUrlsToUse)
+                    window.versapay.initClient(sessionId, stylesToUse, fontsToUse)
                 );
                 clientRef.current = client;
 
@@ -126,6 +128,7 @@ export default function VersapayCheckout({
                 await Promise.resolve(client.initFrame(node, "358px", "100%"));
                 log("frame ready");
 
+                // onApproval uses *refs* so it always sees latest values
                 client.onApproval(
                     async (result) => {
                         log("onApproval: success", result);
@@ -138,17 +141,17 @@ export default function VersapayCheckout({
                                     token: result.token,
                                     paymentType: result.paymentType,
                                     currency,
-                                    cart,
-                                    email,
-                                    billingAddress,
-                                    shippingAddress,
+                                    cart: cartRef.current,
+                                    email: emailRef.current,
+                                    billingAddress: billingRef.current,
+                                    shippingAddress: shippingRef.current,
                                     capture: true,
                                 }),
                             });
                             const data = await res.json();
                             if (!res.ok) throw new Error(data?.error || "Payment failed");
                             setSuccess("Payment approved and order created.");
-                            if (onSuccess) onSuccess(data);
+                            onSuccess?.(data);
                         } catch (e) {
                             setError(e.message);
                             log("order error", e);
@@ -168,21 +171,9 @@ export default function VersapayCheckout({
             }
         };
 
-        // Defer to the next frame to ensure the container is in the DOM
         const id = window.requestAnimationFrame(run);
         return () => window.cancelAnimationFrame(id);
-    }, [
-        mounted,
-        sdkReady,
-        sessionId,
-        containerId,
-        currency,
-        cart,
-        email,
-        billingAddress,
-        shippingAddress,
-        onSuccess,
-    ]);
+    }, [mounted, sdkReady, sessionId, containerId, currency, sdkStyles, sdkFontUrls]); // ← no cart/email/address deps (we use refs)
 
     const onSubmit = (e) => {
         e.preventDefault();
@@ -204,20 +195,11 @@ export default function VersapayCheckout({
                     Amount Due: ${(Math.round(amountCents) / 100).toFixed(2)} {currency}
                 </Typography>
 
-                {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                        {error}
-                    </Alert>
-                )}
-                {success && (
-                    <Alert severity="success" sx={{ mb: 2 }}>
-                        {success}
-                    </Alert>
-                )}
+                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
                 <form onSubmit={onSubmit} aria-busy={showSkeleton} aria-live="polite">
                     <Box sx={{ position: "relative", width: 500, maxWidth: "100%" }}>
-                        {/* Always render the container on the client so the SDK can mount */}
                         {mounted && (
                             <div
                                 id={containerId}
@@ -230,16 +212,8 @@ export default function VersapayCheckout({
                             />
                         )}
 
-                        {/* Skeleton overlay until the iframe signals ready */}
                         {showSkeleton && (
-                            <Box
-                                sx={{
-                                    position: "absolute",
-                                    inset: 0,
-                                    p: 1,
-                                    pointerEvents: "none",
-                                }}
-                            >
+                            <Box sx={{ position: "absolute", inset: 0, p: 1, pointerEvents: "none" }}>
                                 <Stack spacing={1} sx={{ height: "100%" }}>
                                     <Skeleton variant="rounded" height={40} />
                                     <Skeleton variant="rounded" height={40} />
@@ -257,12 +231,7 @@ export default function VersapayCheckout({
                         )}
                     </Box>
 
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        sx={{ mt: 2 }}
-                        disabled={!canPay}
-                    >
+                    <Button type="submit" variant="contained" sx={{ mt: 2 }} disabled={!canPay}>
                         {clientReady ? "Pay Now" : "Preparing…"}
                     </Button>
                 </form>
@@ -271,10 +240,7 @@ export default function VersapayCheckout({
             <Script
                 src="https://ecommerce-api-uat.versapay.com/client.js"
                 strategy="afterInteractive"
-                onLoad={() => {
-                    setSdkReady(true);
-                    log("SDK loaded");
-                }}
+                onReady={() => { setSdkReady(true); log("SDK loaded"); }}
                 onError={() => setError("Failed to load Versapay SDK")}
             />
         </Card>

@@ -7,6 +7,8 @@ const API_KEY = process.env.VERSAPAY_API_KEY || "";
 
 // Netlify (Node 18+) has global fetch; no extra import needed.
 exports.handler = async (event) => {
+    const body = event.body ? JSON.parse(event.body) : {};
+
     try {
         if (event.httpMethod !== "POST") {
             return { statusCode: 405, body: "Method Not Allowed" };
@@ -16,6 +18,7 @@ exports.handler = async (event) => {
         }
 
         const body = event.body ? JSON.parse(event.body) : {};
+        console.log(body)
         const {
             sessionId,
             token,

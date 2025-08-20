@@ -1,14 +1,16 @@
 "use client";
 import Grid from "@mui/material/Grid";
-import {Card, CardContent, Divider, Stack, TextField, Typography, Checkbox, FormControlLabel} from "@mui/material";
+import { Card, CardContent, Divider, Stack, TextField, Typography, Checkbox, FormControlLabel, Collapse, Box } from "@mui/material";
+import Image from "next/image";
 import VersapayCheckout from "../../components/VersapayCheckout";
 import AddressFields from "../../components/AddressFields";
+import DemoPaymentInfo from "../../components/DemoPaymentInfo";
 import React from "react";
 
 export default function CartScenario() {
     const [cart] = React.useState([
-        {id: "sku-001", name: "Demo Hoodie", quantity: 1, unit_amount: 4500},
-        {id: "sku-002", name: "Sticker Pack", quantity: 2, unit_amount: 300},
+        { id: "sku-001", name: "Demo Hoodie", quantity: 1, unit_amount: 4500, image: "/demo-hoodie.png" },
+        { id: "sku-002", name: "Sticker Pack", quantity: 2, unit_amount: 300, image: "/sticker-pack.png" },
     ]);
     const [email, setEmail] = React.useState("");
 
@@ -48,10 +50,37 @@ export default function CartScenario() {
                         <CardContent>
                             <Stack spacing={2}>
                                 {cart.map((item) => (
-                                    <Stack key={item.id} direction="row" alignItems="center"
-                                           justifyContent="space-between">
-                                        <Typography>{item.name} × {item.quantity}</Typography>
-                                        <Typography>${(((item.unit_amount ?? item.price ?? 0) * (item.quantity || 1)) / 100).toFixed(2)}</Typography>
+                                    <Stack key={item.id} direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                                        <Stack direction="row" spacing={2} alignItems="center">
+                                            <Box
+                                                sx={{
+                                                    width: 64,
+                                                    height: 64,
+                                                    borderRadius: 2,
+                                                    overflow: "hidden",
+                                                    border: "1px solid",
+                                                    borderColor: "divider",
+                                                    flexShrink: 0,
+                                                }}
+                                            >
+                                                <Image
+                                                    src={item.image || "/demo-hoodie.png"}
+                                                    alt={item.name}
+                                                    width={64}
+                                                    height={64}
+                                                    style={{ objectFit: "cover" }}
+                                                />
+                                            </Box>
+
+                                            <Stack>
+                                                <Typography>{item.name}</Typography>
+                                                <Typography variant="body2" color="text.secondary">Qty {item.quantity}</Typography>
+                                            </Stack>
+                                        </Stack>
+
+                                        <Typography>
+                                            ${(((item.unit_amount ?? item.price ?? 0) * (item.quantity || 1)) / 100).toFixed(2)}
+                                        </Typography>
                                     </Stack>
                                 ))}
                                 <Divider/>
@@ -80,16 +109,33 @@ export default function CartScenario() {
 
                     <Card>
                         <CardContent>
-                            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{mb: 1}}>
+                            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
                                 <Typography variant="h6" fontWeight={800}>Shipping Address</Typography>
                                 <FormControlLabel
-                                    control={<Checkbox checked={sameAsBilling}
-                                                       onChange={(e) => setSameAsBilling(e.target.checked)}/>}
+                                    control={
+                                        <Checkbox
+                                            checked={sameAsBilling}
+                                            onChange={(e) => setSameAsBilling(e.target.checked)}
+                                            inputProps={{ "aria-controls": "shipping-fields" }}
+                                        />
+                                    }
                                     label="Same as billing"
                                 />
                             </Stack>
-                            <AddressFields value={shippingAddress} onChange={setShippingAddress}
-                                           disabled={sameAsBilling}/>
+
+                            {/* Compact note when minimized */}
+                            {sameAsBilling && (
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                    Shipping will use your billing address.
+                                </Typography>
+                            )}
+
+                            {/* Only render fields when different from billing */}
+                            <Collapse in={!sameAsBilling} timeout="auto" unmountOnExit>
+                                <div id="shipping-fields">
+                                    <AddressFields value={shippingAddress} onChange={setShippingAddress} />
+                                </div>
+                            </Collapse>
                         </CardContent>
                     </Card>
                 </Stack>
@@ -106,6 +152,7 @@ export default function CartScenario() {
                         billingAddress={billingAddress}
                         shippingAddress={sameAsBilling ? billingAddress : shippingAddress}
                     />
+                    <DemoPaymentInfo />
                 </Stack>
             </Grid>
         </Grid>

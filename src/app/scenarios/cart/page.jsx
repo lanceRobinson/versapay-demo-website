@@ -5,6 +5,7 @@ import Image from "next/image";
 import VersapayCheckout from "../../components/VersapayCheckout";
 import AddressFields from "../../components/AddressFields";
 import DemoPaymentInfo from "../../components/DemoPaymentInfo";
+import CartTopBar from "../../components/CartTopBar";
 import React from "react";
 
 export default function CartScenario() {
@@ -13,6 +14,8 @@ export default function CartScenario() {
         { id: "sku-002", name: "Sticker Pack", quantity: 2, unit_amount: 300, image: "/sticker-pack.png" },
     ]);
     const [email, setEmail] = React.useState("");
+    const [checkoutMode, setCheckoutMode] = React.useState("guest"); // "guest" | "customer"
+
 
     // Address state
     const [billingAddress, setBillingAddress] = React.useState({
@@ -25,6 +28,21 @@ export default function CartScenario() {
         address1: "", address2: "", city: "", stateOrProvince: "",
         postCode: "", country: "US", phone: "", email: "",
     });
+
+    const DEMO_BILLING = {
+        contactFirstName: "Barb",
+        contactLastName: "Akew",
+        companyName: "",
+        address1: "123 Main St.",
+        address2: "",
+        city: "Atlanta",
+        stateOrProvince: "GA",
+        postCode: "30326",
+        country: "US",
+        phone: "5555551234",
+        email: "salesdemo@versapay.com",
+    };
+
     const [sameAsBilling, setSameAsBilling] = React.useState(true);
 
     // Keep billing/shipping emails in sync with top-level email
@@ -42,6 +60,8 @@ export default function CartScenario() {
     const subtotalCents = cart.reduce((sum, i) => sum + (i.unit_amount ?? i.price ?? 0) * (i.quantity || 1), 0);
 
     return (
+        <>
+            {/*<CartTopBar mode={checkoutMode} onChange={setCheckoutMode} />*/}
         <Grid container spacing={3} columns={12}>
             <Grid size={{xs: 12, md: 6}}>
                 <Stack spacing={3}>
@@ -102,8 +122,16 @@ export default function CartScenario() {
 
                     <Card>
                         <CardContent>
-                            <Typography variant="h6" fontWeight={800} gutterBottom>Billing Address</Typography>
-                            <AddressFields value={billingAddress} onChange={setBillingAddress}/>
+                            <AddressFields
+                                title="Billing Address"
+                                value={billingAddress}
+                                onChange={(next) => {
+                                    setBillingAddress(next);
+                                    // keep your cart email in sync, if you want:
+                                    if (next?.email) setEmail(next.email);
+                                }}
+                                autofillValue={DEMO_BILLING}
+                            />
                         </CardContent>
                     </Card>
 
@@ -156,5 +184,6 @@ export default function CartScenario() {
                 </Stack>
             </Grid>
         </Grid>
+        </>
     );
 }

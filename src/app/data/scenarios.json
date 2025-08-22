@@ -1,8 +1,16 @@
 [
     {
-        "title": "Shopping Cart & Checkout using Versapay",
-        "description": "Add items to a cart and complete checkout",
+        "title": "Guest Checkout",
+        "description": "Email + addresses entered manually, pay with SDK.",
         "href": "/scenarios/cart",
+        "icon": "shopping",
+        "chip": "E-Commerce API",
+        "disabled": false
+    },
+    {
+        "title": "Existing Customer Checkout",
+        "href": "/scenarios/customer-checkout",
+        "description": "Prefills from VersaPay customer Marsha Mellow (226866567) and is wallet-aware.",
         "icon": "shopping",
         "chip": "E-Commerce API",
         "disabled": false

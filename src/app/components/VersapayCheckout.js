@@ -13,35 +13,30 @@ import {
     Skeleton,
     Stack,
 } from "@mui/material";
-import PaymentConfirmation from "./PaymentConfirmation";
+import PaymentConfirmation from "./PaymentConfirmation"; // keep if you have it
 
 export default function VersapayCheckout({
+                                             sessionId,                 // REQUIRED: always pass from the page
                                              amountCents = 0,
                                              currency = "USD",
                                              cart = [],
                                              email = "",
-                                             billingAddress,          // optional; if provided we validate before enabling Pay
-                                             shippingAddress,         // optional; if provided we validate before enabling Pay
+                                             billingAddress,
+                                             shippingAddress,
                                              onSuccess,
                                              sdkStyles,
                                              sdkFontUrls,
-                                             precreatedSessionId,     // NEW: use a server-created session (existing-customer flow)
                                          }) {
-    // lifecycle
     const [mounted, setMounted] = React.useState(false);
     const [sdkReady, setSdkReady] = React.useState(false);
     const [clientReady, setClientReady] = React.useState(false);
-
-    // session & UI
-    const [sessionId, setSessionId] = React.useState("");
     const [error, setError] = React.useState("");
     const [success, setSuccess] = React.useState("");
-    const [order, setOrder] = React.useState(null); // when set, show confirmation
+    const [order, setOrder] = React.useState(null);
 
-    // DOM / SDK refs
-    const containerId = React.useId(); // SSR-safe
+
+    const containerId = React.useId();
     const clientRef = React.useRef(null);
-    const initializedRef = React.useRef(false);
 
     // keep latest values for approval callback
     const cartRef = React.useRef(cart);
@@ -53,7 +48,6 @@ export default function VersapayCheckout({
     React.useEffect(() => { billingRef.current = billingAddress; }, [billingAddress]);
     React.useEffect(() => { shippingRef.current = shippingAddress; }, [shippingAddress]);
 
-    // default SDK theming (overridable)
     const defaultStyles = {
         ".vp-input, .vp-select": { borderRadius: "12px" },
         ".vp-button-primary": { backgroundColor: "#0ea5e9" },
@@ -68,9 +62,8 @@ export default function VersapayCheckout({
         new URLSearchParams(window.location.search).get("debug") === "1";
     const log = (...args) => { if (debug) console.log("[VP]", ...args); };
 
-    React.useEffect(() => { setMounted(true); }, []);
+    React.useEffect(() => setMounted(true), []);
 
-    // address guard (only enforced if addresses are provided)
     const isAddressValid = (a = {}) =>
         !!(
             a?.contactFirstName &&
@@ -83,111 +76,88 @@ export default function VersapayCheckout({
             (a?.email || email)
         );
 
-    const requireAddresses = !!(billingAddress || shippingAddress);
-
+    const needAddresses = !!(billingAddress || shippingAddress);
     const canPay =
         clientReady &&
         !!email &&
         cart.length > 0 &&
-        (!requireAddresses || (isAddressValid(billingAddress) && isAddressValid(shippingAddress)));
+        (!needAddresses || (isAddressValid(billingAddress) && isAddressValid(shippingAddress)));
 
-    // 1) choose/create session
-    React.useEffect(() => {
-        if (!mounted) return;
-        (async () => {
-            try {
-                if (precreatedSessionId) {
-                    log("using precreated session", precreatedSessionId);
-                    setSessionId(precreatedSessionId);
-                    return;
-                }
-                log("creating session…");
-                const res = await fetch("/api/versapay/session", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ options: {} }),
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data?.error || "Failed to create session");
-                setSessionId(data.sessionId);
-                log("sessionId=", data.sessionId);
-            } catch (e) {
-                setError(e.message);
-                log("session error", e);
-            }
-        })();
-    }, [mounted, precreatedSessionId]);
+    function teardownFrame() {
+        try {
+            const node = document.getElementById(containerId);
+            if (node) node.innerHTML = "";
+        } catch {}
+        clientRef.current = null;
+        setClientReady(false);
+    }
 
-    // 2) init SDK frame (once per session/script)
-    React.useEffect(() => {
-        if (!mounted || !sdkReady || !sessionId || initializedRef.current) return;
-        if (!window?.versapay) return;
-
+    async function initForSession(id) {
+        if (!id) return;
         const node = document.getElementById(containerId);
-        if (!(node instanceof Element)) { log("container not ready yet"); return; }
+        if (!node || !(node instanceof Element)) { log("container not ready"); return; }
 
-        const run = async () => {
-            try {
-                log("initClient…");
-                const stylesToUse = sdkStyles ?? defaultStyles;
-                const fontUrlsToUse = sdkFontUrls ?? defaultFontUrls;
-                const client = await Promise.resolve(
-                    window.versapay.initClient(sessionId, stylesToUse, fontUrlsToUse)
-                );
-                clientRef.current = client;
+        teardownFrame();
 
-                log("initFrame…", node);
-                await Promise.resolve(client.initFrame(node, "358px", "100%"));
-                log("frame ready");
+        const styles = sdkStyles ?? defaultStyles;
+        const fonts  = sdkFontUrls ?? defaultFontUrls;
 
-                client.onApproval(
-                    async (result) => {
-                        log("onApproval: success", result);
-                        try {
-                            const res = await fetch("/api/versapay/order", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    sessionId,
-                                    token: result.token,
-                                    paymentType: result.paymentType,
-                                    currency,
-                                    cart: cartRef.current,
-                                    email: emailRef.current,
-                                    billingAddress: billingRef.current,
-                                    shippingAddress: shippingRef.current,
-                                    capture: true,
-                                }),
-                            });
-                            const data = await res.json();
-                            if (!res.ok) throw new Error(data?.error || "Payment failed");
-                            setSuccess("Payment approved and order created.");
-                            setOrder(data);                 // swap to confirmation view
-                            onSuccess?.(data);
-                        } catch (e) {
-                            setError(e.message);
-                            log("order error", e);
-                        }
-                    },
-                    (err) => {
-                        setError(err?.error || "Payment not approved");
-                        log("onApproval: error", err);
-                    }
-                );
+        log("initClient…");
+        const client = await Promise.resolve(window.versapay.initClient(id, styles, fonts));
+        clientRef.current = client;
 
-                initializedRef.current = true;
-                setClientReady(true);
-            } catch (e) {
-                setError(e.message);
-                log("init error", e);
+        log("initFrame…", node);
+        await Promise.resolve(client.initFrame(node, "358px", "100%"));
+        log("frame ready");
+
+        client.onApproval(
+            async (result) => {
+                log("onApproval: success", result);
+                try {
+                    const res = await fetch("/api/versapay/order", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            sessionId: id,
+                            token: result.token,
+                            paymentType: result.paymentType,
+                            currency,
+                            cart: cartRef.current,
+                            email: emailRef.current,
+                            billingAddress: billingRef.current,
+                            shippingAddress: shippingRef.current,
+                            capture: true,
+                        }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data?.error || "Payment failed");
+                    setSuccess("Payment approved and order created.");
+                    setOrder(data);
+                    onSuccess?.(data);
+                } catch (e) {
+                    setError(e.message);
+                    log("order error", e);
+                }
+            },
+            (err) => {
+                setError(err?.error || "Payment not approved");
+                log("onApproval: error", err);
             }
-        };
+        );
 
-        const id = window.requestAnimationFrame(run);
-        return () => window.cancelAnimationFrame(id);
-    }, [mounted, sdkReady, sessionId, containerId, currency, sdkStyles, sdkFontUrls]);
+        setClientReady(true);
+    }
 
-    // 3) after success, render confirmation
+    // (Re)initialize when script+session are ready
+    React.useEffect(() => {
+        if (!mounted || !sdkReady || !sessionId) return;
+        if (!window?.versapay) return;
+        log("init/reinit for session", sessionId);
+        initForSession(sessionId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [mounted, sdkReady, sessionId]);
+
+    // Confirmation view
     if (order) {
         return (
             <PaymentConfirmation
@@ -196,18 +166,15 @@ export default function VersapayCheckout({
                 currency={currency}
                 email={email}
                 onDone={() => {
-                    // optional: reset to allow another attempt
                     setOrder(null);
                     setError("");
                     setSuccess("");
-                    setClientReady(false);
-                    initializedRef.current = false;
+                    teardownFrame();
                 }}
             />
         );
     }
 
-    // submit
     const onSubmit = (e) => {
         e.preventDefault();
         try {
@@ -233,16 +200,10 @@ export default function VersapayCheckout({
 
                 <form onSubmit={onSubmit} aria-busy={showSkeleton} aria-live="polite">
                     <Box sx={{ position: "relative", width: 500, maxWidth: "100%" }}>
-                        {/* render container only on client to avoid hydration timing issues */}
                         {mounted && (
                             <div
                                 id={containerId}
-                                style={{
-                                    height: 358,
-                                    width: "100%",
-                                    display: "block",
-                                    position: "relative",
-                                }}
+                                style={{ height: 358, width: "100%", display: "block", position: "relative" }}
                             />
                         )}
 
@@ -265,12 +226,7 @@ export default function VersapayCheckout({
                         )}
                     </Box>
 
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        sx={{ mt: 2 }}
-                        disabled={!canPay}
-                    >
+                    <Button type="submit" variant="contained" sx={{ mt: 2 }} disabled={!canPay}>
                         {clientReady ? "Pay Now" : "Preparing…"}
                     </Button>
                 </form>

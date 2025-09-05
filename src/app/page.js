@@ -12,15 +12,19 @@ export default function Landing() {
     return (
         <Stack spacing={5}>
             {/* Hero */}
-            <Box sx={{
-                p: { xs: 4, md: 6 },
-                borderRadius: 4,
-                bgcolor: "#f0f9ff",
-                backgroundImage:
-                    "radial-gradient(1200px 400px at 10% 10%, rgba(14,165,233,.15), transparent), radial-gradient(800px 300px at 90% 10%, rgba(34,197,94,.15), transparent)",
-                border: "1px solid",
-                borderColor: "divider",
-            }}>
+            <Box
+                sx={(t) => ({
+                    p: { xs: 4, md: 6 },
+                    borderRadius: 1,
+                    bgcolor: "background.paper",
+                    backgroundImage:
+                        `radial-gradient(1200px 400px at 10% 10%, ${t.palette.secondary.main}0F, transparent),
+                        radial-gradient(800px 300px at 90% 10%, ${t.palette.secondary.main}14, transparent)`
+                    ,
+                    border: "1px solid",
+                    borderColor: "divider",
+                })}
+            >
                 <Typography variant="h3" sx={{ fontWeight: 900, mb: 1 }}>
                     Scenario-driven Demo
                 </Typography>

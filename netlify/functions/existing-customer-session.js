@@ -26,6 +26,7 @@ exports.handler = async (event) => {
         const expUrl  = `${EXPORTS_BASE}/exports/customer/${encodeURIComponent(customerId)}`;
         const expResp = await fetch(expUrl, { headers: { Authorization: basic, Accept: "application/json" } });
         const expText = await expResp.text();
+        // console.log("expText",expText)
         if (!expResp.ok) return json(expResp.status, { error: "Failed to fetch customer", details: expText });
 
         const expJson = safeJson(expText) || {};

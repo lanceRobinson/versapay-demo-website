@@ -47,8 +47,8 @@ export default function ScenarioCard({ title, description, href, chip, icon = "r
                 }}
             >
                 <CardContent sx={{ width: "100%" }}>
-                    {chip && <Chip label={chip} size="small" color="primary" sx={{ ml: "auto" }} />}
-                    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
+                    {chip && <Chip label={chip} size="medium" color="primary" sx={{ ml: "auto" }} />}
+                    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }} paddingTop={2}>
                         {ICONS[icon] || ICONS.rocket}
                         <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>{title}</Typography>
                     </Stack>

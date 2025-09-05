@@ -16,18 +16,18 @@
         "disabled": false
     },
     {
+        "title": "Portal Sign In/Sign Up & Prepayment Page",
+        "description": "Customers can sign in to the portal, sign up for the portal, or make a prepayment without signing in.",
+        "href": "/scenarios/portal",
+        "icon": "tools",
+        "chip": "Customer Portal",
+        "disabled": false
+    },
+    {
         "title": "Capture Payment Method",
         "description": "Capture a customer payment method with processing a payment.",
         "href": "#",
         "icon": "rocket",
-        "chip": "Coming Soon",
-        "disabled": true
-    },
-    {
-        "title": "Portal Sign In/Sign Up & Prepayment Page",
-        "description": "Customers can sign in to the portal, sign up for the portal, or make a prepayment without signing in.",
-        "href": "#",
-        "icon": "tools",
         "chip": "Coming Soon",
         "disabled": true
     }

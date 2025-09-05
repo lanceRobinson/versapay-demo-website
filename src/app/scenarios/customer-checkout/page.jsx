@@ -27,8 +27,8 @@ export default function CustomerCheckoutPage() {
 
     // cart with images in /public
     const [cart, setCart] = React.useState([
-        { id: "sku-hoodie", name: "Demo Hoodie", quantity: 1, unit_amount: 4500, image: "/demo-hoodie.png" },
-        { id: "sku-stickers", name: "Sticker Pack", quantity: 2, unit_amount: 300, image: "/sticker-pack.png" },
+        { id: "sku-hoodie", name: "Demo Hoodie", quantity: 1, unit_amount: 4500, image: "/images/demo-hoodie.png" },
+        { id: "sku-stickers", name: "Sticker Pack", quantity: 2, unit_amount: 300, image: "/images/sticker-pack.png" },
     ]);
     const subtotalCents = cart.reduce((sum, i) => sum + (i.unit_amount || 0) * (i.quantity || 1), 0);
 
@@ -75,7 +75,7 @@ export default function CustomerCheckoutPage() {
             }
         })();
         return () => {
-            // window.location.reload()
+            window.location.reload()
         }
     }, [customerId]);
 

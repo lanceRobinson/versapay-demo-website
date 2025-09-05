@@ -116,6 +116,7 @@ export default function CustomerCheckoutPage() {
                                                         width={64}
                                                         height={64}
                                                         style={{ objectFit: "cover" }}
+
                                                     />
                                                 </Box>
                                                 <Stack>

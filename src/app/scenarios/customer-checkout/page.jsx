@@ -75,7 +75,7 @@ export default function CustomerCheckoutPage() {
             }
         })();
         return () => {
-            window.location.reload()
+            // window.location.reload()
         }
     }, [customerId]);
 

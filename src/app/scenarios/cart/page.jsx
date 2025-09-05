@@ -98,7 +98,7 @@ export default function CartPage() {
                                                         width={64}
                                                         height={64}
                                                         style={{ objectFit: "cover" }}
-
+                                                        unoptimized // <-- bypass Next optimizer on Netlify
                                                     />
                                                 </Box>
                                                 <Stack>
@@ -141,6 +141,20 @@ export default function CartPage() {
                                     onChange={(next) => {
                                         setBillingAddress(next);
                                         if (next?.email) setEmail(next.email);
+                                    }}
+                                    onAutofill={true}
+                                    autofillDefaults={{
+                                        contactFirstName: "Barb",
+                                        contactLastName: "Akew",
+                                        companyName: "",
+                                        address1: "123 Main St.",
+                                        address2: "",
+                                        city: "Atlanta",
+                                        stateOrProvince: "GA",
+                                        postCode: "30326",
+                                        country: "US",
+                                        phone: "5555551234",
+                                        email: "salesdemo@versapay.com",
                                     }}
                                 />
                             </CardContent>

@@ -27,8 +27,8 @@ export default function CustomerCheckoutPage() {
 
     // cart with images in /public
     const [cart, setCart] = React.useState([
-        { id: "sku-hoodie", name: "Demo Hoodie", quantity: 1, unit_amount: 4500, image: "/demo-hoodie.png" },
-        { id: "sku-stickers", name: "Sticker Pack", quantity: 2, unit_amount: 300, image: "/sticker-pack.png" },
+        { id: "sku-hoodie", name: "Demo Hoodie", quantity: 1, unit_amount: 4500, image: "/demo-hoodie2.png" },
+        { id: "sku-stickers", name: "Sticker Pack", quantity: 2, unit_amount: 300, image: "/sticker-pack2.png" },
     ]);
     const subtotalCents = cart.reduce((sum, i) => sum + (i.unit_amount || 0) * (i.quantity || 1), 0);
 

@@ -98,7 +98,6 @@ export default function CartPage() {
                                                         width={64}
                                                         height={64}
                                                         style={{ objectFit: "cover" }}
-                                                        unoptimized // <-- bypass Next optimizer on Netlify
                                                     />
                                                 </Box>
                                                 <Stack>

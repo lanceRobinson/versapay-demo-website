@@ -86,12 +86,6 @@ export default function CartPage() {
                                             spacing={2}
                                         >
                                             <Stack direction="row" spacing={2} alignItems="center">
-                                                <Box
-                                                    sx={{
-                                                        width: 64, height: 64, borderRadius: 2, overflow: "hidden",
-                                                        border: "1px solid", borderColor: "divider", flexShrink: 0
-                                                    }}
-                                                >
                                                     <Image
                                                         src={item.image}
                                                         alt={item.name}
@@ -99,7 +93,7 @@ export default function CartPage() {
                                                         height={64}
                                                         style={{ objectFit: "cover" }}
                                                     />
-                                                </Box>
+
                                                 <Stack>
                                                     <Typography>{item.name}</Typography>
                                                     <Typography variant="body2" color="text.secondary">Qty {item.quantity}</Typography>
